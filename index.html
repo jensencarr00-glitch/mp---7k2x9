@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Meal Prep</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#b3302b">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+:root{--bg:#f8f4f3;--card:#fff;--text:#2b1d1b;--mute:#7a6a67;--acc:#b3302b;--accT:#fff;--line:#e8dcd9;--ok:#c6efce;--okT:#14532d;--warn:#ffeb9c;--warnT:#6b4e00;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#181111;--card:#251b1a;--text:#f2e9e7;--mute:#a89995;--acc:#ff6b64;--accT:#2a0b09;--line:#3b2c2a;--ok:#1f4d33;--okT:#bff0cf;--warn:#5c4a12;--warnT:#ffe9a6;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#181111;--card:#251b1a;--text:#f2e9e7;--mute:#a89995;--acc:#ff6b64;--accT:#2a0b09;--line:#3b2c2a;--ok:#1f4d33;--okT:#bff0cf;--warn:#5c4a12;--warnT:#ffe9a6;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,Helvetica,sans-serif;font-size:16px;-webkit-text-size-adjust:100%}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+#app{position:fixed;left:0;right:0;top:env(safe-area-inset-top,0px);bottom:calc(50px + env(safe-area-inset-bottom,0px));overflow:hidden;touch-action:pan-y}#track{display:flex;width:300%;height:100%;will-change:transform}.pg{flex:0 0 33.3333%;height:100%;overflow-y:auto;overscroll-behavior:contain;padding:14px 14px 24px}.pg>*{max-width:640px;margin-left:auto;margin-right:auto}
+h1{font-size:22px;margin:6px 0 12px}
+h2{font-size:15px;margin:18px 0 8px;color:var(--acc)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:10px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.sum{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.sum div{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center}
+.sum b{display:block;font-size:20px}.sum span{font-size:12px;color:var(--mute)}
+select,input[type=number]{width:100%;font-size:16px;padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--text);margin-top:6px}
+.lab{font-size:12px;color:var(--mute);margin-top:8px;display:block}
+.pill{font-size:13px;font-weight:bold;padding:3px 9px;border-radius:99px}
+.ok{background:var(--ok);color:var(--okT)}.warn{background:var(--warn);color:var(--warnT)}
+.day{font-weight:bold;font-size:17px}
+.done{opacity:.55}
+.chk{width:26px;height:26px;accent-color:var(--acc)}
+.link{background:none;border:0;color:var(--acc);font-size:13px;padding:4px 0;text-decoration:underline}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.stats{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.stats span{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:6px 10px;font-size:14px}
+ul,ol{padding-left:20px;margin:6px 0}li{margin:5px 0;line-height:1.35}
+.min{color:var(--acc);font-weight:bold;white-space:nowrap}
+.tip{font-size:14px;color:var(--mute);margin-top:8px;line-height:1.35}
+nav{position:fixed;left:0;right:0;bottom:0;display:flex;background:var(--card);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
+nav button{flex:1;padding:0;height:50px;font-size:15px;font-weight:bold;background:none;border:0;color:var(--mute)}
+nav button.on{color:var(--acc);box-shadow:inset 0 3px 0 var(--acc)}
+.reset{margin-top:14px;width:100%;padding:12px;border-radius:10px;border:1px solid var(--line);background:none;color:var(--mute);font-size:14px}
+.next{border:2px solid var(--acc)}
+li.sd{opacity:.45;text-decoration:line-through}
+ol li{cursor:pointer}
+.rd{color:#e5483f!important}select.bad{color:#e5483f;border-color:#e5483f;text-decoration:line-through}.no{background:rgba(229,72,63,.2);color:#e5483f}
+</style>
+</head>
+<body>
+<main id="app"></main>
+<nav><button id="t1">📅 Plan</button><button id="t2">🍳 Cook</button><button id="t3">🛒 Stock</button></nav>
+<script>
+var M={
+"Bolognese":{k:1440,p:80,t:"~35 min",ing:["250g beef mince (5%)","½ tin chopped tomatoes","½ onion, chopped","230g dry rigatoni","1–2 tbsp oil","½ chicken stock cube","1 tsp garlic powder, 1 tsp onion granules","½–1 tsp smoked paprika, ½ tsp thyme, ½ tsp sage","Pepper and a pinch of parsley"],
+steps:[["Heat the oil and fry the onion.",5],["Add garlic powder, onion granules, paprika, thyme, sage and pepper. Stir.",1],["Add the mince, break it up and brown it.",8],["Add tomatoes, crumbled ½ stock cube and a splash of water. Simmer (start the pasta for the last 12 min).",20],["Boil the rigatoni in ~2.3L salted water, then drain.",12],["Stir in parsley and mix with the pasta.",1]],tip:"Cook a double batch (500g mince) and keep the second portion for another day."},
+"Tuna pasta":{k:1225,p:55,t:"~25 min",ing:["1 tin tuna in water, drained","½ tin chopped tomatoes","½ onion, chopped","230g dry rigatoni","1–2 tbsp oil","1 tsp garlic powder, pepper, pinch of cayenne","Parsley"],
+steps:[["Fry the onion in oil.",5],["Add garlic powder, pepper and cayenne for 30 sec.",1],["Add the tomatoes and simmer. Boil the pasta in ~2.3L salted water alongside.",10],["Stir in the tuna for the last 2 min, then add parsley.",2],["Drain the pasta and mix everything together.",1]],tip:"Cayenne is hot, so start with a small pinch."},
+"Chicken pasta":{k:1315,p:76,t:"~30 min",ing:["200g chicken breast","½ tin chopped tomatoes","230g dry rigatoni","1–2 tbsp oil","Chicken seasoning and pepper","1 tsp garlic powder, 1 tsp onion granules"],
+steps:[["Cube the chicken and season with chicken seasoning and pepper.",2],["Fry in oil until no pink inside.",9],["Add garlic powder, onion granules and tomatoes. Simmer. Boil the pasta alongside.",10],["Drain the pasta and mix it into the sauce.",1]],tip:"Check the thickest piece of chicken is white all the way through."},
+"Chicken and rice":{k:910,p:56,t:"~30 min",ing:["200g chicken breast","120g dry rice + 240ml water","A handful of frozen veg or broccoli","1–2 tbsp oil","Chinese 5 spice + garlic powder, or Korean BBQ seasoning"],
+steps:[["Boil the rice in 240ml water, cover and simmer on low.",12],["Slice the chicken into strips and fry in oil.",9],["Season with 5 spice and garlic powder (or Korean BBQ for a sweeter, sticky finish).",1],["Add the veg for the last 3–4 min.",4],["Rest the rice for 5 min, then mix it all together.",5]],tip:"Start the rice first, then cook the chicken while it simmers."},
+"Chicken wedges":{k:800,p:55,t:"~35 min",ing:["200g chicken breast","400g potatoes, cut into wedges","1 tbsp oil on wedges, 1 tbsp oil on chicken","Season All + mild BBQ seasoning (wedges)","Chicken seasoning + smoked paprika (chicken)","A handful of veg"],
+steps:[["Toss the wedges in oil, Season All and mild BBQ. Airfry at 190°C, shaking halfway.",23],["Rub the chicken with oil, chicken seasoning and smoked paprika. Add it to the airfryer at 180°C for the last 18–22 min, flipping once.",20],["Boil the veg for 4–5 min.",5],["Rest the chicken for 3 min, then slice.",3]],tip:"Cook the wedges and chicken together if they fit. Otherwise do the wedges first and keep them warm."},
+"Sausage and mash":{k:1000,p:40,t:"~30 min",ing:["2 Cumberland sausages","400g potatoes","2 eggs (1 on one meal)","Splash of milk","A handful of veg","1 tbsp oil","Pepper, a pinch of sage, onion granules"],
+steps:[["Airfry the sausages at 180°C, turning once.",17],["Peel and chop the potatoes, then boil until soft. Drain and mash with milk, pepper and sage.",18],["Fry the eggs in a little oil, or boil for 7 min.",7],["Boil the veg for 4–5 min and add onion granules and pepper.",5]],tip:"Start the potatoes first. The sausages and eggs fit in while they boil."},
+"Breakfast (oats)":{k:575,p:20,t:"~5 min",ing:["70g porridge oats","~100ml milk + ~150ml water","1 banana, sliced","25g peanut butter"],steps:[["Microwave or simmer the oats with the milk and water.",4],["Top with the banana and peanut butter.",1]],tip:"Eaten every day."}
+};
+var LM=["Bolognese","Tuna pasta","Chicken pasta","Chicken and rice","Chicken wedges","Sausage and mash"];
+var BK=575,SN=105;
+var DEF={target:2711,inv:{},snack:[0,1,1,1,1,1,1,0,0,0,0,0,0,0],plan:[["Bolognese","Chicken wedges"],["Chicken and rice","Sausage and mash"],["Tuna pasta","Chicken wedges"],["Sausage and mash","Chicken and rice"],["Bolognese","Chicken pasta"],["Sausage and mash","Tuna pasta"],["Chicken pasta","Sausage and mash"],["Tuna pasta","Chicken and rice"],["Sausage and mash","Bolognese"],["Chicken and rice","Tuna pasta"],["Sausage and mash","Chicken pasta"],["Chicken and rice","Tuna pasta"],["Sausage and mash","Bolognese"],["Tuna pasta","Sausage and mash"]]};
+DEF.ck=[];for(var q0=0;q0<14;q0++)DEF.ck.push(q0?[0,0,0,0]:[1,1,1,0]);
+var S,tab=1,cook="Bolognese",steps={},wlOn=0,wl=null;
+try{S=JSON.parse(localStorage.getItem("mp3"))}catch(e){}
+if(!S||!S.plan||S.plan.length!==14||!S.ck||!S.inv)S=JSON.parse(JSON.stringify(DEF));
+function save(){try{localStorage.setItem("mp3",JSON.stringify(S))}catch(e){}}
+function n(x){return Math.round(x).toLocaleString("en-GB")}
+function opts(sel){return LM.map(function(m){return '<option'+(m===sel?' selected':'')+'>'+m+'</option>'}).join("")}
+function dayTot(i){var p=S.plan[i];return{k:BK+M[p[0]].k+M[p[1]].k+(S.snack[i]?SN:0),p:20+M[p[0]].p+M[p[1]].p+(S.snack[i]?1:0)}}
+var I=[["Chicken breast","g",2000],["Beef mince","g",1000],["Sausages","",16],["Tinned tuna"," tins",6],["Rigatoni","g",3000],["Potatoes","g",4000],["Eggs","",15],["Chopped tomatoes"," tins",8],["Onions","g",1000],["Rice","g",1000],["Stock cubes","",10],["Oats","g",1000],["Bananas","",20],["Peanut butter","g",340],["Milk","ml",2272]];
+var USE={"Bolognese":{"Beef mince":250,"Chopped tomatoes":.5,"Onions":75,"Rigatoni":230,"Stock cubes":.5},"Tuna pasta":{"Tinned tuna":1,"Chopped tomatoes":.5,"Onions":75,"Rigatoni":230},"Chicken pasta":{"Chicken breast":200,"Chopped tomatoes":.5,"Rigatoni":230},"Chicken and rice":{"Chicken breast":200,"Rice":120},"Chicken wedges":{"Chicken breast":200,"Potatoes":400},"Sausage and mash":{"Sausages":2,"Potatoes":400,"Eggs":2,"Milk":50},"Breakfast (oats)":{"Oats":70,"Bananas":1,"Peanut butter":25,"Milk":100},"Snack (banana)":{"Bananas":1}};
+function f(x){return n(Math.round(x*10)/10)}
+function use(h,m){var u=USE[m];for(var k in u)h[k]-=u[k]}
+function short(m,h){var s=[],u=USE[m];for(var k in u)if(h[k]<u[k]-1e-9)s.push(k);return s}
+function have(){var h={};I.forEach(function(r){h[r[0]]=S.inv[r[0]]!==undefined?S.inv[r[0]]:r[2]});
+ for(var i=0;i<14;i++){var c=S.ck[i],p=S.plan[i];if(c[0])use(h,"Breakfast (oats)");if(c[1])use(h,p[0]);if(c[2])use(h,p[1]);if(c[3]&&S.snack[i])use(h,"Snack (banana)")}
+ return h}
+function dayDone(i){var c=S.ck[i];return c[0]&&c[1]&&c[2]&&(!S.snack[i]||c[3])}
+function tkl(i,j,t,on){return '<label class="tip" style="margin:0"><input type="checkbox" data-k="'+i+','+j+'"'+(on?' checked':'')+'> '+t+'</label>'}
+function sel(t,i,m,on,hv){var sh=on?[]:short(m,hv),l=t==="l";
+ return '<div><span class="lab">'+(l?"Lunch":"Dinner")+'</span><select data-'+t+'="'+i+'"'+(sh.length?' class="bad"':'')+'>'+LM.map(function(x){return '<option value="'+x+'"'+(x===m?' selected':'')+'>'+(short(x,hv).length?'✗ ':'')+x+'</option>'}).join("")+'</select>'+(sh.length?'<div class="tip rd" style="margin:4px 0 0">✗ Low: '+sh.join(", ")+'</div>':'')+'<div class="row"><button class="link" data-c="'+m+'">Cook →</button>'+tkl(i,l?1:2,"eaten",on)+'</div></div>'}
+function plan(){
+ var tk=0,tp=0,def=0,nx=-1,hv=have(),h="";
+ for(var j=13;j>=0;j--)if(!dayDone(j))nx=j;
+ for(var i=0;i<14;i++){var d=dayTot(i);tk+=d.k;tp+=d.p;if(d.k<=S.target+25)def++}
+ h+='<h1>🍝 2-Week Meal Plan</h1><div class="sum"><div><b>'+n(tk/14)+'</b><span>avg kcal/day</span></div><div><b>'+n(tp/14)+'g</b><span>avg protein</span></div><div><b>'+def+'/14</b><span>days at/under target</span></div></div>';
+ h+='<div class="card"><span class="lab" style="margin:0">Daily calorie target</span><input type="number" id="tg" value="'+S.target+'" inputmode="numeric"></div>';
+ for(var i=0;i<14;i++){var d=dayTot(i),df=d.k-S.target,p=S.plan[i],c=S.ck[i];
+  h+='<div class="card'+(dayDone(i)?' done':'')+(i===nx?' next':'')+'"><div class="row"><span class="day">Day '+(i+1)+(i===nx?' · Next up':'')+'</span><span class="pill '+(Math.abs(df)<=200?'ok':'warn')+'">'+n(d.k)+' kcal ('+(df>0?'+':'')+n(df)+')</span></div>'
+  +'<div class="pair">'+sel("l",i,p[0],c[1],hv)+sel("n",i,p[1],c[2],hv)+'</div>'
+  +'<div class="row" style="margin-top:8px">'+tkl(i,0,"Breakfast eaten",c[0])+(S.snack[i]?tkl(i,3,"Snack eaten",c[3]):'')+'<label class="tip" style="margin:0"><input type="checkbox" data-s="'+i+'"'+(S.snack[i]?' checked':'')+'> snack</label></div>'
+  +'<div class="tip" style="margin-top:6px">Protein '+n(d.p)+'g</div></div>'}
+ h+='<button class="reset" id="rs">Reset to the suggested plan</button>';return h}
+function cookV(){
+ var hv=have(),sh=short(cook,hv),m=M[cook],h='<h1>🍳 How to cook</h1><div class="card"><select id="cs"'+(sh.length?' class="bad"':'')+'>'+Object.keys(M).map(function(k){return '<option value="'+k+'"'+(k===cook?' selected':'')+'>'+(short(k,hv).length?'✗ ':'')+k+'</option>'}).join("")+'</select>'+(sh.length?'<p class="rd" style="font-weight:bold;margin:8px 0 0">✗ Not enough stock: '+sh.join(", ")+'</p>':'')
+ +'<div class="stats"><span>🔥 '+n(m.k)+' kcal</span><span>💪 '+m.p+'g protein</span><span>⏱ '+m.t+'</span></div><label class="tip" style="display:block;margin:0 0 6px"><input type="checkbox" id="wl"'+(wlOn?' checked':'')+'> Keep screen on while cooking</label><p class="tip" style="margin:0">Calories are rough, using raw weights and the oil listed.</p></div>'
+ +'<h2>Ingredients (1 portion)</h2><div class="card"><ul>'+m.ing.map(function(x){return '<li>'+x+'</li>'}).join("")+'</ul></div>'
+ +'<h2>Method <span class="tip" style="font-weight:normal">(tap a step to tick it off)</span></h2><div class="card"><ol>'+m.steps.map(function(s,j){return '<li data-st="'+j+'" class="'+(steps[cook+j]?'sd':'')+'">'+s[0]+' <span class="min">~'+s[1]+' min</span></li>'}).join("")+'</ol><p class="tip">'+m.tip+' Reheat leftovers until piping hot and eat within 2–3 days.</p></div>';return h}
+function stockV(){var h=have(),nd={};I.forEach(function(r){nd[r[0]]=0});
+ for(var i=0;i<14;i++){var c=S.ck[i],p=S.plan[i],L=[];if(!c[0])L.push("Breakfast (oats)");if(!c[1])L.push(p[0]);if(!c[2])L.push(p[1]);if(!c[3]&&S.snack[i])L.push("Snack (banana)");L.forEach(function(m){for(var k in USE[m])nd[k]+=USE[m][k]})}
+ var o='<h1>🛒 Stock</h1><p class="tip">Stock drops automatically as you tick meals as eaten. Edit “Bought” if you buy more. Meals you can’t make are marked ✗.</p>';
+ I.forEach(function(r){var k=r[0],left=h[k]-nd[k],b=S.inv[k]!==undefined?S.inv[k]:r[2],bad=left<-1e-9;
+  o+='<div class="card"><div class="row"><b>'+k+'</b><span class="pill '+(bad?'no':'ok')+'">'+(bad?'Short by '+f(-left)+r[1]:'OK')+'</span></div><div class="row" style="margin-top:8px"><span class="tip" style="margin:0">In stock: <b>'+f(h[k])+r[1]+'</b> · planned: '+f(nd[k])+r[1]+'</span><span class="tip" style="margin:0">Bought <input type="number" data-iv="'+k+'" value="'+b+'" inputmode="decimal" style="width:90px;display:inline-block"></span></div></div>'});
+ return o+'<p class="tip">Rice is set to 1,000g, so change it to what you have.</p>'}
+function pos(t,a){var tr=document.getElementById("track");tr.style.transition=a?"transform .32s cubic-bezier(.22,.9,.3,1)":"none";tr.style.transform="translateX("+(-(t-1)*document.getElementById("app").clientWidth)+"px)"}
+function navs(){for(var i=1;i<4;i++)document.getElementById("t"+i).className=tab===i?"on":""}
+function go(t){tab=Math.max(1,Math.min(3,t));pos(tab,1);navs()}
+function render(){var sc=[0,0,0],i;for(i=0;i<3;i++){var e=document.getElementById("p"+(i+1));if(e)sc[i]=e.scrollTop}
+ document.getElementById("app").innerHTML='<div id="track"><div class="pg" id="p1">'+plan()+'</div><div class="pg" id="p2">'+cookV()+'</div><div class="pg" id="p3">'+stockV()+'</div></div>';
+ for(i=0;i<3;i++)document.getElementById("p"+(i+1)).scrollTop=sc[i];
+ pos(tab,0);navs();bind()}
+function bind(){
+ var q=function(s){return document.querySelectorAll(s)};
+ q("[data-l]").forEach(function(e){e.onchange=function(){S.plan[+e.dataset.l][0]=e.value;save();render()}});
+ q("[data-n]").forEach(function(e){e.onchange=function(){S.plan[+e.dataset.n][1]=e.value;save();render()}});
+ q("[data-k]").forEach(function(e){e.onchange=function(){var a=e.dataset.k.split(",");S.ck[+a[0]][+a[1]]=e.checked?1:0;save();render()}});
+ q("[data-iv]").forEach(function(e){e.onchange=function(){S.inv[e.dataset.iv]=+e.value||0;save();render()}});
+ q("[data-s]").forEach(function(e){e.onchange=function(){S.snack[+e.dataset.s]=e.checked?1:0;save();render()}});
+ var t=document.getElementById("tg");if(t)t.onchange=function(){S.target=+t.value||2711;save();render()};
+ var r=document.getElementById("rs");if(r)r.onclick=function(){if(confirm("Reset the whole plan?")){S=JSON.parse(JSON.stringify(DEF));save();render()}};
+ var c=document.getElementById("cs");if(c)c.onchange=function(){cook=c.value;steps={};render()};
+ q("[data-c]").forEach(function(e){e.onclick=function(){cook=e.dataset.c;steps={};render();document.getElementById("p2").scrollTop=0;go(2)}});
+ q("[data-st]").forEach(function(e){e.onclick=function(){var k=cook+e.dataset.st;steps[k]=steps[k]?0:1;render()}});
+ var w=document.getElementById("wl");if(w)w.onchange=function(){wlOn=w.checked?1:0;try{if(wlOn){navigator.wakeLock.request("screen").then(function(l){wl=l}).catch(function(){})}else if(wl){wl.release();wl=null}}catch(x){}}}
+[1,2,3].forEach(function(k){document.getElementById("t"+k).onclick=function(){go(k)}});
+var sx=0,sy=0,st=0,mode=0,dx=0;
+document.addEventListener("touchstart",function(e){var t=e.touches[0];sx=t.clientX;sy=t.clientY;st=Date.now();dx=0;mode=(e.target.closest&&e.target.closest("select,input"))?2:0},{passive:true});
+document.addEventListener("touchmove",function(e){if(mode===2)return;var t=e.touches[0],mx=t.clientX-sx,my=t.clientY-sy;
+ if(mode===0){if(Math.abs(mx)<8&&Math.abs(my)<8)return;mode=Math.abs(mx)>Math.abs(my)*1.2?1:2}
+ if(mode!==1)return;dx=mx;if((tab===1&&dx>0)||(tab===3&&dx<0))dx*=.3;
+ var tr=document.getElementById("track");tr.style.transition="none";tr.style.transform="translateX("+(-(tab-1)*document.getElementById("app").clientWidth+dx)+"px)"},{passive:true});
+document.addEventListener("touchend",function(){if(mode!==1)return;var W=document.getElementById("app").clientWidth,v=Math.abs(dx)/Math.max(1,Date.now()-st),t=tab;
+ if(Math.abs(dx)>W*.25||(v>.45&&Math.abs(dx)>30))t=tab+(dx<0?1:-1);mode=0;go(t)},{passive:true});
+document.addEventListener("touchcancel",function(){if(mode===1){mode=0;go(tab)}},{passive:true});
+window.addEventListener("resize",function(){pos(tab,0)});
+render();
+if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(function(){});
+</script>
+</body>
+</html>
