@@ -90,19 +90,19 @@ if(!S||!S.plan||S.plan.length!==14||!S.ck||!S.inv)S=JSON.parse(JSON.stringify(DE
 function save(){try{localStorage.setItem("mp3",JSON.stringify(S))}catch(e){}}
 function n(x){return Math.round(x).toLocaleString("en-GB")}
 function opts(sel){return LM.map(function(m){return '<option'+(m===sel?' selected':'')+'>'+m+'</option>'}).join("")}
-function dayTot(i){var p=S.plan[i],sn=S.snack[i]?1:0;return{k:BK+mk(p[0])+mk(p[1])+sn*SN+(S.ex[i]||0),p:18+M[p[0]].p+M[p[1]].p+sn,f:21+mf(p[0])+mf(p[1]),c:78+M[p[0]].c+M[p[1]].c+sn*27}}
+function dayTot(i){var p=S.plan[i],sn=S.snack[i]?1:0,sd=S.sd[i],a=sd||S.md[i][0]===3?0:1,b=sd||S.md[i][1]===3?0:1,z=sd?0:1;return{k:z*BK+a*mk(p[0])+b*mk(p[1])+z*sn*SN+(S.ex[i]||0),p:z*18+a*M[p[0]].p+b*M[p[1]].p+z*sn,f:z*21+a*mf(p[0])+b*mf(p[1]),c:z*78+a*M[p[0]].c+b*M[p[1]].c+z*sn*27}}
 var I=[["Chicken breast","g",2000],["Beef mince","g",1000],["Sausages","",16],["Tinned tuna"," tins",6],["Rigatoni","g",3000],["Potatoes","g",4000],["Eggs","",15],["Chopped tomatoes"," tins",8],["Onions","g",1000],["Rice","g",1000],["Stock cubes","",10],["Oats","g",1000],["Bananas","",20],["Peanut butter","g",340],["Milk","ml",2272]];
 var USE={"Bolognese":{"Beef mince":250,"Chopped tomatoes":.5,"Onions":75,"Rigatoni":230,"Stock cubes":.5},"Tuna pasta":{"Tinned tuna":1,"Chopped tomatoes":.5,"Onions":75,"Rigatoni":230},"Chicken pasta":{"Chicken breast":200,"Chopped tomatoes":.5,"Rigatoni":230},"Chicken and rice":{"Chicken breast":200,"Rice":120},"Chicken wedges":{"Chicken breast":200,"Potatoes":400},"Sausage and wedges":{"Sausages":2,"Potatoes":400,"Eggs":2},"Breakfast (oats)":{"Oats":70,"Bananas":1,"Peanut butter":25,"Milk":100},"Snack (banana)":{"Bananas":1}};
 function f(x){return n(Math.round(x*10)/10)}
 function use(h,m,x){var u=USE[m];for(var k in u)h[k]-=u[k]*(x===undefined?1:x)}
 function short(m,h){var s=[],u=USE[m];for(var k in u)if(h[k]<u[k]-1e-9)s.push(k);return s}
 function have(){var h={};I.forEach(function(r){h[r[0]]=S.inv[r[0]]!==undefined?S.inv[r[0]]:r[2]});
- for(var i=0;i<14;i++){var c=S.ck[i],p=S.plan[i];if(c[0])use(h,"Breakfast (oats)");if(c[1])use(h,p[0],ml(i,0));if(c[2])use(h,p[1],ml(i,1));if(c[3]&&S.snack[i])use(h,"Snack (banana)")}
+ for(var i=0;i<14;i++){var c=S.ck[i],p=S.plan[i];if(c[0]&&!S.sd[i])use(h,"Breakfast (oats)");if(c[1])use(h,p[0],ml(i,0));if(c[2])use(h,p[1],ml(i,1));if(c[3]&&S.snack[i]&&!S.sd[i])use(h,"Snack (banana)")}
  return h}
-function dayDone(i){var c=S.ck[i];return c[0]&&c[1]&&c[2]&&(!S.snack[i]||c[3])}
+function dayDone(i){var c=S.ck[i],m=S.md[i];return S.sd[i]||(c[0]&&(c[1]||m[0]===3)&&(c[2]||m[1]===3)&&(!S.snack[i]||c[3]))}
 function tkl(i,j,t,on){return '<label class="tip" style="margin:0"><input type="checkbox" data-k="'+i+','+j+'"'+(on?' checked':'')+'> '+t+'</label>'}
-function sel(t,i,m,on,hv){var sh=on?[]:short(m,hv),l=t==="l";
- return '<div><span class="lab">'+(l?"Lunch":"Dinner")+'</span><select data-'+t+'="'+i+'"'+(sh.length?' class="bad"':'')+'>'+LM.map(function(x){return '<option value="'+x+'"'+(x===m?' selected':'')+'>'+(short(x,hv).length?'✗ ':'')+x+'</option>'}).join("")+'</select>'+(sh.length?'<div class="tip rd" style="margin:4px 0 0">✗ Low: '+sh.join(", ")+'</div>':'')+'<div class="row"><button class="link" data-c="'+m+'">Cook →</button>'+tkl(i,l?1:2,"eaten",on)+'</div><button class="link" data-md="'+i+','+(l?0:1)+'">['+["normal","cook x2","leftover"][S.md[i][l?0:1]]+']</button></div>'}
+function sel(t,i,m,on,hv){var sh=on||S.sd[i]||S.md[i][t==="l"?0:1]===3?[]:short(m,hv),l=t==="l";
+ return '<div><span class="lab">'+(l?"Lunch":"Dinner")+'</span><select data-'+t+'="'+i+'"'+(sh.length?' class="bad"':'')+'>'+LM.map(function(x){return '<option value="'+x+'"'+(x===m?' selected':'')+'>'+(short(x,hv).length?'✗ ':'')+x+'</option>'}).join("")+'</select>'+(sh.length?'<div class="tip rd" style="margin:4px 0 0">✗ Low: '+sh.join(", ")+'</div>':'')+'<div class="row"><button class="link" data-c="'+m+'">Cook →</button>'+tkl(i,l?1:2,"eaten",on)+'</div><button class="link" data-md="'+i+','+(l?0:1)+'">['+["normal","cook x2","leftover","skipped"][S.md[i][l?0:1]]+']</button></div>'}
 function plan(){
  var tk=0,tp=0,def=0,nx=-1,hv=have(),h="";
  for(var j=13;j>=0;j--)if(!dayDone(j))nx=j;var t0=tdy();if(t0>=0)nx=t0;
@@ -113,7 +113,7 @@ function plan(){
   h+='<div class="card'+(dayDone(i)?' done':'')+(i===nx?' next':'')+'" id="d'+i+'"><div class="row"><span class="day">Day '+(i+1)+(i===nx?' · Next up':'')+'</span><span class="pill '+(Math.abs(df)<=200?'ok':'warn')+'">'+n(d.k)+' kcal ('+(df>0?'+':'')+n(df)+')</span></div>'
   +'<div class="pair">'+sel("l",i,p[0],c[1],hv)+sel("n",i,p[1],c[2],hv)+'</div>'
   +'<div class="row" style="margin-top:8px">'+tkl(i,0,"Breakfast eaten",c[0])+(S.snack[i]?tkl(i,3,"Snack eaten",c[3]):'')+'<label class="tip" style="margin:0"><input type="checkbox" data-s="'+i+'"'+(S.snack[i]?' checked':'')+'> snack</label></div>'
-  +'<div class="row tip" style="margin-top:6px"><span>P'+n(d.p)+' C'+n(d.c)+' F'+n(d.f)+'g <button class="link" data-sw="'+i+'">[swap]</button></span><span>extra kcal <input type="number" data-ex="'+i+'" value="'+(S.ex[i]||'')+'" placeholder="0" inputmode="numeric" style="width:80px;display:inline-block;margin:0"></span></div></div>'}
+  +'<div class="row tip" style="margin-top:6px"><span>P'+n(d.p)+' C'+n(d.c)+' F'+n(d.f)+'g <button class="link" data-sw="'+i+'">[swap]</button> <button class="link" data-sk="'+i+'">'+(S.sd[i]?'[unskip day]':'[skip day]')+'</button></span><span>extra kcal <input type="number" data-ex="'+i+'" value="'+(S.ex[i]||'')+'" placeholder="0" inputmode="numeric" style="width:80px;display:inline-block;margin:0"></span></div></div>'}
  h+='<button class="reset" id="rs">Reset to the suggested plan</button>';return h}
 function cookV(){
  if(cook==="__prep")return prepV();var hv=have(),sh=short(cook,hv),m=M[cook],h='<h1>== COOK ==</h1><div class="card"><select id="cs"'+(sh.length?' class="bad"':'')+'>'+copt()+'</select>'+(sh.length?'<p class="rd" style="font-weight:bold;margin:8px 0 0">✗ Not enough stock: '+sh.join(", ")+'</p>':'')
@@ -121,7 +121,7 @@ function cookV(){
  +'<h2>Ingredients (x'+bx+')</h2><div class="card"><div class="row" style="margin-bottom:8px"><span class="tip" style="margin:0">Multiply by</span><input type="number" id="bx" value="'+bx+'" step="0.25" min="0.1" inputmode="decimal" style="width:100px;margin:0"></div><ul>'+m.ing.map(function(x){return '<li>'+(bx!==1?scl(x):x)+'</li>'}).join("")+'</ul></div>'
  +'<h2>Method <span class="tip" style="font-weight:normal">(tap a step to tick it off)</span></h2><div class="card"><ol>'+m.steps.map(function(s,j){return '<li data-st="'+j+'" class="'+(steps[cook+j]?'sd':'')+'">'+s[0]+' <span class="min">~'+s[1]+' min</span> <button class="link" data-tm="'+s[1]+'">[timer]</button></li>'}).join("")+'</ol><p class="tip">'+m.tip+' Reheat leftovers until piping hot and eat within 2–3 days.</p></div>';return h}
 function stockV(){var h=have(),nd={};I.forEach(function(r){nd[r[0]]=0});
- for(var i=0;i<14;i++){var c=S.ck[i],p=S.plan[i],L=[];if(!c[0])L.push("Breakfast (oats)");if(!c[1])for(var z=0;z<ml(i,0);z++)L.push(p[0]);if(!c[2])for(var z=0;z<ml(i,1);z++)L.push(p[1]);if(!c[3]&&S.snack[i])L.push("Snack (banana)");L.forEach(function(m){for(var k in USE[m])nd[k]+=USE[m][k]})}
+ for(var i=0;i<14;i++){var c=S.ck[i],p=S.plan[i],L=[];if(!c[0]&&!S.sd[i])L.push("Breakfast (oats)");if(!c[1])for(var z=0;z<ml(i,0);z++)L.push(p[0]);if(!c[2])for(var z=0;z<ml(i,1);z++)L.push(p[1]);if(!c[3]&&S.snack[i]&&!S.sd[i])L.push("Snack (banana)");L.forEach(function(m){for(var k in USE[m])nd[k]+=USE[m][k]})}
  var o0='<h1>== STOCK ==</h1><p class="tip">Stock drops automatically as you tick meals as eaten. Edit “Bought” if you buy more. Meals you can’t make are marked ✗.</p>';
  var o="";I.forEach(function(r){var k=r[0],left=h[k]-nd[k],b=S.inv[k]!==undefined?S.inv[k]:r[2],bad=left<-1e-9;
   o+='<div class="card"><div class="row"><b>'+k+'</b><span class="pill '+(bad?'no':'ok')+'">'+(bad?'Short by '+f(-left)+r[1]:'OK')+'</span></div><div class="row" style="margin-top:8px"><span class="tip" style="margin:0">In stock: <b>'+f(h[k])+r[1]+'</b> · planned: '+f(nd[k])+r[1]+'</span><span class="tip" style="margin:0">Bought <input type="number" data-iv="'+k+'" value="'+b+'" inputmode="decimal" style="width:90px;display:inline-block"></span></div></div>'});
@@ -136,8 +136,8 @@ function tick(){var b=document.getElementById("tb");if(!TM){b.hidden=true;return
  if(r<=0){t.textContent="[ TIMER DONE ]";if(!TM.d){TM.d=1;try{navigator.vibrate([500,200,500,200,500])}catch(x){}try{var o=AC.createOscillator();o.connect(AC.destination);o.frequency.value=880;o.start();setTimeout(function(){o.stop()},700)}catch(x){}}}
  else t.textContent="[ "+Math.floor(r/60)+":"+("0"+r%60).slice(-2)+" ]"}
 setInterval(tick,500);
-function fx(){if(!S)return;if(!S.ex)S.ex=[0,0,0,0,0,0,0,0,0,0,0,0,0,0];if(!S.oil)S.oil=2;if(!S.md){S.md=[];for(var z=0;z<14;z++)S.md.push([0,0])}if(!S.wt)S.wt={};if(S.plan)S.plan=S.plan.map(function(q){return q.map(function(m){return m==="Sausage and mash"?"Sausage and wedges":m})})}
-function ml(i,j){return[1,2,0][S.md[i][j]]}
+function fx(){if(!S)return;if(!S.ex)S.ex=[0,0,0,0,0,0,0,0,0,0,0,0,0,0];if(!S.oil)S.oil=2;if(!S.md){S.md=[];for(var z=0;z<14;z++)S.md.push([0,0])}if(!S.wt)S.wt={};if(!S.sd)S.sd=[0,0,0,0,0,0,0,0,0,0,0,0,0,0];if(S.plan)S.plan=S.plan.map(function(q){return q.map(function(m){return m==="Sausage and mash"?"Sausage and wedges":m})})}
+function ml(i,j){return S.sd[i]?0:[1,2,0,0][S.md[i][j]]}
 function mf(m){return M[m].f+(S.oil===1&&m!=="Breakfast (oats)"?-14:0)}
 function tdy(){if(!S.start)return -1;var d=Math.round((new Date().setHours(0,0,0,0)-new Date(S.start+"T00:00:00"))/864e5);return d<0||d>13?-1:d}
 function curDay(){var s=-1;for(var j=13;j>=0;j--)if(!dayDone(j))s=j;var t=tdy();return t>=0?t:s}
@@ -175,7 +175,8 @@ function bind(){
  var oi=document.getElementById("oil");if(oi)oi.onchange=function(){S.oil=+oi.value;save();render()};
  var bk=document.getElementById("bk");if(bk)bk.onclick=function(){var t=JSON.stringify(S);try{navigator.clipboard.writeText(t).then(function(){alert("Backup copied. Paste it into a notes app to keep it safe.")},function(){prompt("Copy this backup:",t)})}catch(x){prompt("Copy this backup:",t)}};
  var rt=document.getElementById("rt");if(rt)rt.onclick=function(){var t=prompt("Paste your backup:");if(!t)return;try{var o=JSON.parse(t);if(o.plan&&o.plan.length===14&&o.ck&&o.inv){S=o;fx();save();render();alert("Restored.")}else alert("That isn't a valid backup.")}catch(x){alert("That isn't a valid backup.")}};
- q("[data-md]").forEach(function(e){e.onclick=function(){var a=e.dataset.md.split(",");S.md[+a[0]][+a[1]]=(S.md[+a[0]][+a[1]]+1)%3;save();render()}});
+ q("[data-md]").forEach(function(e){e.onclick=function(){var a=e.dataset.md.split(",");S.md[+a[0]][+a[1]]=(S.md[+a[0]][+a[1]]+1)%4;save();render()}});
+ q("[data-sk]").forEach(function(e){e.onclick=function(){var i=+e.dataset.sk;S.sd[i]=S.sd[i]?0:1;save();render()}});
  q("[data-sw]").forEach(function(e){e.onclick=function(){var a=+e.dataset.sw,b=parseInt(prompt("Swap day "+(a+1)+" with which day (1-14)?"))-1;if(b>=0&&b<14&&b!==a){["plan","ck","snack","ex","md"].forEach(function(k){var t=S[k][a];S[k][a]=S[k][b];S[k][b]=t});save();render()}}});
  q("[data-pd]").forEach(function(e){e.onclick=function(){pd=+e.dataset.pd;render()}});
  var sd=document.getElementById("sd");if(sd)sd.onchange=function(){S.start=sd.value;save();render()};
