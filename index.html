@@ -86,7 +86,7 @@ DEF.ck=[];for(var q0=0;q0<14;q0++)DEF.ck.push(q0?[0,0,0,0]:[1,1,1,0]);DEF.md=[];
 var S,tab=1,cook="Bolognese",steps={},wlOn=0,wl=null;
 try{S=JSON.parse(localStorage.getItem("mp3"))}catch(e){}
 fx();
-if(!S||!S.plan||S.plan.length!==14||!S.ck||!S.inv)S=JSON.parse(JSON.stringify(DEF));
+if(!S||!S.plan||S.plan.length!==14||!S.ck||!S.inv)S=JSON.parse(JSON.stringify(DEF));fx();
 function save(){try{localStorage.setItem("mp3",JSON.stringify(S))}catch(e){}}
 function n(x){return Math.round(x).toLocaleString("en-GB")}
 function opts(sel){return LM.map(function(m){return '<option'+(m===sel?' selected':'')+'>'+m+'</option>'}).join("")}
@@ -165,7 +165,7 @@ function bind(){
  q("[data-iv]").forEach(function(e){e.onchange=function(){S.inv[e.dataset.iv]=+e.value||0;save();render()}});
  q("[data-s]").forEach(function(e){e.onchange=function(){S.snack[+e.dataset.s]=e.checked?1:0;save();render()}});
  var t=document.getElementById("tg");if(t)t.onchange=function(){S.target=+t.value||2711;save();render()};
- var r=document.getElementById("rs");if(r)r.onclick=function(){if(confirm("Reset the whole plan?")){S=JSON.parse(JSON.stringify(DEF));save();render()}};
+ var r=document.getElementById("rs");if(r)r.onclick=function(){if(confirm("Reset the whole plan?")){S=JSON.parse(JSON.stringify(DEF));fx();save();render()}};
  var c=document.getElementById("cs");if(c)c.onchange=function(){cook=c.value;steps={};render()};
  q("[data-c]").forEach(function(e){e.onclick=function(){cook=e.dataset.c;steps={};render();document.getElementById("p2").scrollTop=0;go(2)}});
  q("[data-st]").forEach(function(e){e.onclick=function(ev){if(ev.target.dataset.tm)return;var k=cook+e.dataset.st;steps[k]=steps[k]?0:1;render()}});
